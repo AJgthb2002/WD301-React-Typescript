@@ -27,7 +27,7 @@ export default function Form(props: { closeFormCB: () => void }) {
   ];
 
   const getLocalForms: () => formdata[] = () => {
-    const savedFormsJSON = localStorage.getItem("formdata");
+    const savedFormsJSON = localStorage.getItem("savedForms");
     return savedFormsJSON ? JSON.parse(savedFormsJSON) : [];
   };
 

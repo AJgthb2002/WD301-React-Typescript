@@ -6,10 +6,13 @@ import Form from "./components/Form";
 
 function App() {
   const [state, setState] = useState("Home");
+  var formKey = -1;
+
   const closeForm = () => {
     setState("Home");
   };
-  const openForm = () => {
+  const openForm = (formkey: number) => {
+    formKey = formkey;
     setState("Form");
   };
 
@@ -22,7 +25,7 @@ function App() {
             <Home openFormCB={openForm} />
           </>
         ) : (
-          <Form closeFormCB={closeForm} />
+          <Form formid={formKey} closeFormCB={closeForm} />
         )}
       </div>
     </AppContainer>

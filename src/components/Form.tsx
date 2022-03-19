@@ -8,13 +8,16 @@ interface formfield {
   value: string;
 }
 
-interface formdata {
+export interface formdata {
   id: number;
   title: string;
   formFields: formfield[];
 }
 
-export default function Form(props: { closeFormCB: () => void }) {
+export default function Form(props: {
+  closeFormCB: () => void;
+  formid: number;
+}) {
   const [newField, setNewField] = useState(""); //label of field
   const titleRef = useRef<HTMLInputElement>(null);
 
@@ -45,17 +48,29 @@ export default function Form(props: { closeFormCB: () => void }) {
 
   const initialState: () => formdata = () => {
     const localForms = getLocalForms();
-    if (localForms.length > 0) {
-      return localForms[0];
+    if (props.formid == -1) {
+      const newForm = {
+        id: Number(new Date()),
+        title: "Untitled Form",
+        formFields: initialformfields,
+      };
+
+      saveLocalForms([...localForms, newForm]);
+      return newForm;
     }
-    const newForm = {
-      id: Number(new Date()),
-      title: "Untitled Form",
-      formFields: initialformfields,
-    };
-    console.log(localForms);
-    saveLocalForms([...localForms, newForm]);
-    return newForm;
+
+    // return localForms.filter((form) => form.id === props.formid)[0];
+    if (localForms.length > 0) {
+      for (let i = 0; i < localForms.length; i++) {
+        if (localForms[i].id === props.formid) {
+          return localForms[i];
+        }
+      }
+    }
+    return localForms[0];
+    // if (localForms.length > 0) {
+    //   return localForms[0];
+    // }
   };
 
   const [state, setState] = useState(() => initialState());

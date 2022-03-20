@@ -1,20 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import InputField from "./InputField";
+import { formfield, formdata } from "../interfaces";
 
-interface formfield {
-  id: number;
-  label: string;
-  type: string;
-  value: string;
-}
-
-interface formdata {
-  id: number;
-  title: string;
-  formFields: formfield[];
-}
-
-export default function Form(props: { closeFormCB: () => void }) {
+export default function Form(props: {
+  closeFormCB: () => void;
+  formid: number;
+}) {
   const [newField, setNewField] = useState(""); //label of field
   const titleRef = useRef<HTMLInputElement>(null);
 
@@ -33,12 +24,25 @@ export default function Form(props: { closeFormCB: () => void }) {
 
   const saveLocalForms = (localForms: formdata[]) => {
     localStorage.setItem("savedForms", JSON.stringify(localForms));
+    console.log("saved form");
+    console.log(localForms);
   };
 
   const saveFormData = (currentState: formdata) => {
-    const localForms = getLocalForms();
+    let localForms = getLocalForms();
+    if (localForms.length === 0) {
+      saveLocalForms([...localForms, currentState]);
+    } else if (localForms.length > 0) {
+      if (
+        localForms.filter((form) => form.id === currentState.id).length === 0
+      ) {
+        saveLocalForms([...localForms, currentState]);
+      }
+    }
+
+    localForms = getLocalForms();
     const updatedLocalForms = localForms.map((form) =>
-      form.id == currentState.id ? currentState : form
+      form.id === currentState.id ? currentState : form
     );
     saveLocalForms(updatedLocalForms);
   };
@@ -46,15 +50,18 @@ export default function Form(props: { closeFormCB: () => void }) {
   const initialState: () => formdata = () => {
     const localForms = getLocalForms();
     if (localForms.length > 0) {
-      return localForms[0];
+      for (let i = 0; i < localForms.length; i++) {
+        if (localForms[i].id === props.formid) {
+          return localForms[i];
+        }
+      }
     }
+    let newid = Number(new Date());
     const newForm = {
-      id: Number(new Date()),
+      id: newid,
       title: "Untitled Form",
       formFields: initialformfields,
     };
-    console.log(localForms);
-    saveLocalForms([...localForms, newForm]);
     return newForm;
   };
 
@@ -99,7 +106,6 @@ export default function Form(props: { closeFormCB: () => void }) {
   };
 
   const clearForm = () => {
-    console.log("inside clearform");
     setState({
       ...state,
       formFields: [
@@ -117,7 +123,7 @@ export default function Form(props: { closeFormCB: () => void }) {
       saveFormData(state);
     }, 1000);
     clearTimeout(timeout);
-  }, [state]);
+  });
 
   return (
     <div className="p-4">

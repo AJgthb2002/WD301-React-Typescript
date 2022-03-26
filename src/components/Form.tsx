@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import InputField from "./InputField";
 import { formfield, formdata } from "../interfaces";
+import { navigate, Link } from "raviger";
 
-export default function Form(props: {
-  closeFormCB: () => void;
-  formid: number;
-}) {
+export default function Form(props: { formid: number }) {
   const [newField, setNewField] = useState(""); //label of field
   const titleRef = useRef<HTMLInputElement>(null);
 
@@ -66,6 +64,10 @@ export default function Form(props: {
   };
 
   const [state, setState] = useState(() => initialState());
+
+  useEffect(() => {
+    state.id !== props.formid && navigate(`/form/${state.id}`);
+  }, [state.id, props.formid]);
 
   const addfield = () => {
     setState({
@@ -184,12 +186,12 @@ export default function Form(props: {
       >
         Clear
       </button>
-      <button
+      <Link
+        href="/"
         className="p-2 bg-blue-600 text-white font-bold rounded-lg px-4 my-4 mr-8"
-        onClick={props.closeFormCB}
       >
         Close
-      </button>
+      </Link>
     </div>
   );
 }

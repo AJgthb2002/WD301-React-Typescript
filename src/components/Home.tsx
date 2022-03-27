@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import logo from "../logo.svg";
 import { formdata } from "../interfaces";
 import { useQueryParams, Link } from "raviger";
@@ -82,10 +82,6 @@ export default function Home() {
           </div>
         </div>
       </form>
-      {/* {savedForms.filter(
-        (form) =>
-          form.title?.toLowerCase().includes(search.toLowerCase()) || false
-      )} */}
 
       <div className="flex flex-col">
         {console.log(savedForms.length)}
@@ -103,13 +99,22 @@ export default function Home() {
                   <span className="text-2xl font-semibold mx-4">
                     {form.title}
                   </span>
+                  <span className="text-md text-grey-500 mx-4">
+                    {form.formFields.length} Questions
+                  </span>
                 </div>
                 <div className="flex justify-around">
+                  <Link
+                    href={`/preview/${form.id}`}
+                    className="p-2 bg-orange-400 text-white font-bold rounded-lg px-4 my-4 mx-2"
+                  >
+                    Preview
+                  </Link>
                   <Link
                     href={`/form/${form.id}`}
                     className="p-2 bg-green-600 text-white font-bold rounded-lg px-4 my-4 mx-2"
                   >
-                    Open
+                    Edit
                   </Link>
                   <button
                     className="p-2 bg-red-600 text-white font-bold rounded-lg px-4 my-4 mx-2 mr-4"

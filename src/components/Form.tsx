@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import InputField from "./InputField";
 import { formfield, formdata } from "../interfaces";
 import { navigate, Link } from "raviger";
@@ -101,18 +101,9 @@ export default function Form(props: { formid: number }) {
         ...state.formFields.filter((field) => field.id !== id),
         {
           ...field,
-          value: newval,
+          label: newval,
         },
       ].sort((a, b) => a.id - b.id),
-    });
-  };
-
-  const clearForm = () => {
-    setState({
-      ...state,
-      formFields: [
-        ...state.formFields.map((field) => ({ ...field, value: "" })),
-      ],
     });
   };
 
@@ -146,8 +137,7 @@ export default function Form(props: { formid: number }) {
             key={field.id}
             id={field.id}
             label={field.label}
-            value={field.value}
-            fieldType={field.type}
+            value={field.label}
             removeField={removefield}
             handleFieldInput={handleFieldInput}
           />
@@ -171,21 +161,14 @@ export default function Form(props: { formid: number }) {
           Add Field
         </button>
       </div>
-      <button className="bg-blue-600 rounded-lg px-3 py-2 my-4 mr-8 text-md text-white font-bold">
-        Submit
-      </button>
+
       <button
         className="p-2 bg-blue-600 text-white font-bold rounded-lg px-4 my-4 mr-8"
         onClick={(_) => saveFormData(state)}
       >
         Save
       </button>
-      <button
-        className="p-2 bg-blue-600 text-white font-bold rounded-lg px-4 my-4 mr-8"
-        onClick={clearForm}
-      >
-        Clear
-      </button>
+
       <Link
         href="/"
         className="p-2 bg-blue-600 text-white font-bold rounded-lg px-4 my-4 mr-8"

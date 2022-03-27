@@ -1,4 +1,3 @@
-import React from "react";
 import logo from "../logo.svg";
 import { ActiveLink } from "raviger";
 
@@ -14,7 +13,7 @@ export default function Header(props: { title: string }) {
         Home
       </ActiveLink>
       <ActiveLink
-        href="/form"
+        href="/form/-1"
         className="text-gray-800 p-2 m-2 uppercase"
         exactActiveClass="text-blue-600"
       >

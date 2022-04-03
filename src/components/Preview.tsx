@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { formfield, formdata, Answer } from "../interfaces";
+import { formfield, formdata, Answer } from "../formTypes";
 import { Link } from "raviger";
 import PreviewField from "./PreviewField";
 

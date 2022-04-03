@@ -1,10 +1,10 @@
 import logo from "../logo.svg";
 import { ActiveLink } from "raviger";
 
-export default function Header(props: { title: string }) {
+export default function Header() {
   return (
-    <div className="flex items-center">
-      <img src={logo} className="animate-spin h-20 w-20" alt="logo" />
+    <div className="flex justify-start mx-20">
+      <img src={logo} className="animate-spin h-20 w-20 mr-16" alt="logo" />
       <ActiveLink
         href="/"
         className="text-gray-800 p-2 m-2 uppercase"
@@ -19,7 +19,6 @@ export default function Header(props: { title: string }) {
       >
         New Form
       </ActiveLink>
-      {/* <h1 className="text-center text-xl font-semibold">{props.title} </h1> */}
     </div>
   );
 }

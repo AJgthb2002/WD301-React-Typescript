@@ -1,22 +1,138 @@
-import { formfield } from "../interfaces";
+// import { formfield } from "../interfaces";
+import { formfield, MultiSelect } from "../formTypes";
+// @ts-ignore
+import ReactMultiSelectCheckboxes from "react-multiselect-checkboxes";
 
 export default function PreviewField(props: {
-  field: formfield;
+  field: formfield | MultiSelect;
   storeValueCB: (id: number, value: string) => void;
   userinputval: string;
 }) {
-  return (
-    <div className="flex flex-col mx-auto  gap-4">
-      <label className="text-xl  font-semibold ">{props.field.label}</label>
-      <input
-        type={props.field.type}
-        value={props.userinputval}
-        className="border-2 border-gray-200 p-2 rounded-lg  my-2 flex-1"
-        onChange={(e) => {
-          e.preventDefault();
-          props.storeValueCB(props.field.id, e.target.value);
-        }}
-      />
-    </div>
-  );
+  switch (props.field.kind) {
+    case "text":
+      return (
+        <div className="flex flex-col mx-auto  gap-4">
+          <label className="text-xl  font-semibold ">{props.field.label}</label>
+          <input
+            type={props.field.fieldType}
+            value={props.userinputval}
+            className="border-2 border-gray-200 p-2 rounded-lg  my-2 flex-1"
+            onChange={(e) => {
+              e.preventDefault();
+              props.storeValueCB(props.field.id, e.target.value);
+            }}
+          />
+        </div>
+      );
+
+    case "dropdown":
+      return (
+        <div className="flex flex-col mx-auto  gap-4">
+          <label className="text-xl  font-semibold ">{props.field.label}</label>
+          <select
+            className="py-2 px-4"
+            value={props.field.value}
+            onChange={(e: any) => {
+              e.preventDefault();
+              props.storeValueCB(props.field.id, e.target.value);
+            }}
+          >
+            <option value="">{props.userinputval}</option>
+            {props.field.options.map((option, index) => {
+              return (
+                <option key={index} value={option}>
+                  {option}
+                </option>
+              );
+            })}
+          </select>
+        </div>
+      );
+
+    case "radio":
+      return (
+        <div className="flex flex-col mx-auto  gap-4">
+          <label className="text-xl  font-semibold ">{props.field.label}</label>
+          <div className="flex gap-4">
+            {props.field.options.map((option, index) => {
+              return (
+                <div key={index}>
+                  <input
+                    type="radio"
+                    id={String(index)}
+                    value={option}
+                    name={`field${props.field.id}`}
+                    defaultChecked={props.userinputval === option}
+                    onChange={(e: any) => {
+                      e.preventDefault();
+                      console.log("target val", e.target.value);
+                      props.storeValueCB(props.field.id, e.target.value);
+                    }}
+                  />
+                    <label htmlFor={String(index)}>{option}</label>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+
+    case "textarea":
+      return (
+        <div className="flex flex-col mx-auto  gap-4">
+          <label className="text-xl  font-semibold ">{props.field.label}</label>
+          <textarea
+            rows={4}
+            cols={50}
+            value={props.userinputval}
+            className="border-2 border-gray-200 p-2 rounded-lg  my-2 flex-1"
+            onChange={(e) => {
+              e.preventDefault();
+              props.storeValueCB(props.field.id, e.target.value);
+            }}
+          />
+        </div>
+      );
+
+    case "multiselect":
+      const res = props.field.options.map((opt) => {
+        return { label: `${opt}`, value: `${opt}` };
+      });
+
+      return (
+        <div className="flex flex-col mx-auto  gap-4">
+          <label className="text-xl  font-semibold ">{props.field.label}</label>
+          <ReactMultiSelectCheckboxes options={res} />
+          {/* <select
+            className="py-2 px-4"
+            // value={props.field.value}
+            // onChange={(e: any) => {
+            //   e.preventDefault();
+            //   props.storeValueCB(props.field.id, e.target.value);
+            // }}
+          >
+            <option value="">{props.userinputval}</option>
+            {props.field.options.map((option, index) => {
+              return (
+                <option key={index} value={option}>
+                  <input
+                    type="checkbox"
+                    id={String(index)}
+                    value={option}
+                    name={`field${props.field.id}`}
+                    // defaultChecked={props.userinputval === option}
+                    onChange={(e: any) => {
+                      e.preventDefault();
+                      console.log("target val", e.target.value);
+                      props.storeValueCB(props.field.id, e.target.value);
+                    }}
+                  />
+                    <label htmlFor={String(index)}>{option}</label>
+                </option>
+              );
+            })}
+          </select> */}
+        </div>
+      );
+  }
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import logo from "../logo.svg";
-import { formdata } from "../interfaces";
+import { formdata } from "../formTypes";
 import { useQueryParams, Link } from "raviger";
 
 export default function Home() {

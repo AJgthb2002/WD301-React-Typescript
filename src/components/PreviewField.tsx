@@ -1,7 +1,4 @@
-// import { formfield } from "../interfaces";
 import { formfield, MultiSelect } from "../formTypes";
-// @ts-ignore
-import ReactMultiSelectCheckboxes from "react-multiselect-checkboxes";
 
 export default function PreviewField(props: {
   field: formfield | MultiSelect;
@@ -95,44 +92,6 @@ export default function PreviewField(props: {
       );
 
     case "multiselect":
-      const res = props.field.options.map((opt) => {
-        return { label: `${opt}`, value: `${opt}` };
-      });
-
-      return (
-        <div className="flex flex-col mx-auto  gap-4">
-          <label className="text-xl  font-semibold ">{props.field.label}</label>
-          <ReactMultiSelectCheckboxes options={res} />
-          {/* <select
-            className="py-2 px-4"
-            // value={props.field.value}
-            // onChange={(e: any) => {
-            //   e.preventDefault();
-            //   props.storeValueCB(props.field.id, e.target.value);
-            // }}
-          >
-            <option value="">{props.userinputval}</option>
-            {props.field.options.map((option, index) => {
-              return (
-                <option key={index} value={option}>
-                  <input
-                    type="checkbox"
-                    id={String(index)}
-                    value={option}
-                    name={`field${props.field.id}`}
-                    // defaultChecked={props.userinputval === option}
-                    onChange={(e: any) => {
-                      e.preventDefault();
-                      console.log("target val", e.target.value);
-                      props.storeValueCB(props.field.id, e.target.value);
-                    }}
-                  />
-                    <label htmlFor={String(index)}>{option}</label>
-                </option>
-              );
-            })}
-          </select> */}
-        </div>
-      );
+      return <></>;
   }
 }

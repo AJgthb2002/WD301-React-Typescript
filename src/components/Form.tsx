@@ -7,13 +7,9 @@ import RadioButtonField from "./RadioButtonField";
 import MultiselectField from "./MultiselectField";
 
 export default function Form(props: { formid: number }) {
-  const [newField, setNewField] = useState({
-    text: "New Text Field Label",
-    dropdown: "New Dropdown Field Label",
-    radio: "New Radio Field Label",
-    textarea: "New Textarea Field Label",
-    multiselect: "New Multiselect Field Label",
-  });
+  const [newField, setNewField] = useState("New Field Label");
+  const [newFieldType, setNewFieldType] = useState("text");
+
   const titleRef = useRef<HTMLInputElement>(null);
 
   const initialformfields: formfield[] = [
@@ -30,7 +26,7 @@ export default function Form(props: { formid: number }) {
     {
       kind: "dropdown",
       id: 4,
-      label: "Fav Food",
+      label: "Favourite Cuisine",
       options: [
         "Chinese",
         "Continental",
@@ -112,90 +108,6 @@ export default function Form(props: { formid: number }) {
     state.id !== props.formid && navigate(`/form/${state.id}`);
   }, [state.id, props.formid]);
 
-  const addDropdownField = () => {
-    setState({
-      ...state,
-      formFields: [
-        ...state.formFields,
-        {
-          kind: "dropdown",
-          id: Number(new Date()),
-          label: newField.dropdown,
-          options: ["default option 1", "default option 2"],
-          value: "",
-        },
-      ],
-    });
-    setNewField({ ...newField, dropdown: "New Dropdown Field Label" });
-  };
-  const addMultiselectField = () => {
-    setState({
-      ...state,
-      formFields: [
-        ...state.formFields,
-        {
-          kind: "multiselect",
-          id: Number(new Date()),
-          label: newField.multiselect,
-          options: ["default option 1", "default option 2", "default option 3"],
-          // value: []
-        },
-      ],
-    });
-    setNewField({ ...newField, multiselect: "New Multiselect Field Label" });
-  };
-  const addTextField = () => {
-    setState({
-      ...state,
-      formFields: [
-        ...state.formFields,
-        {
-          kind: "text",
-          id: Number(new Date()),
-          label: newField.text,
-          fieldType: "text",
-          value: "",
-        },
-      ],
-    });
-
-    setNewField({ ...newField, text: "New Text Field Label" });
-  };
-  const addTextAreaField = () => {
-    setState({
-      ...state,
-      formFields: [
-        ...state.formFields,
-        {
-          kind: "textarea",
-          id: Number(new Date()),
-          label: newField.textarea,
-          value: "",
-        },
-      ],
-    });
-
-    setNewField({ ...newField, textarea: "New Textarea Field Label" });
-  };
-
-  const addRadioField = () => {
-    setState({
-      ...state,
-      formFields: [
-        ...state.formFields,
-        {
-          kind: "radio",
-          id: Number(new Date()),
-          label: newField.radio,
-          options: ["default option 1", "default option 2"],
-          value: "",
-        },
-      ],
-    });
-
-    setNewField({ ...newField, radio: "New Radio Field Label" });
-  };
-
   const removefield = (id: number) => {
     setState({
       ...state,
@@ -245,37 +157,141 @@ export default function Form(props: { formid: number }) {
     }
   };
 
-  // const editOptions = (id:number, name:string, action: string) => {
-  //   const field: any = state.formFields.find((field) => field.id === id);
+  const addField = () => {
+    switch (newFieldType) {
+      case "Text":
+        setState({
+          ...state,
+          formFields: [
+            ...state.formFields,
+            {
+              kind: "text",
+              id: Number(new Date()),
+              label: newField,
+              fieldType: "text",
+              value: "",
+            },
+          ],
+        });
+        break;
 
-  //   if (field) {
-  //     console.log("inside editoptions");
-  //     let newField={}
-  //     switch(action){
-  //       case "add":
-  //         newField = {
-  //           ...field,
-  //           options: [...field.options, name],
-  //         }
+      case "Email":
+        setState({
+          ...state,
+          formFields: [
+            ...state.formFields,
+            {
+              kind: "text",
+              id: Number(new Date()),
+              label: newField,
+              fieldType: "email",
+              value: "",
+            },
+          ],
+        });
+        break;
 
-  //       case "remove":
-  //         newField = {
-  //           ...field,
-  //           options: field.options.filter((o:any) => o !== name),
-  //         }
+      case "Contact No.":
+        setState({
+          ...state,
+          formFields: [
+            ...state.formFields,
+            {
+              kind: "text",
+              id: Number(new Date()),
+              label: newField,
+              fieldType: "tel",
+              value: "",
+            },
+          ],
+        });
+        break;
 
-  //     }
+      case "Date":
+        setState({
+          ...state,
+          formFields: [
+            ...state.formFields,
+            {
+              kind: "text",
+              id: Number(new Date()),
+              label: newField,
+              fieldType: "date",
+              value: "",
+            },
+          ],
+        });
+        break;
 
-  //     console.log("new field", newField);
-  //     setState({
-  //       ...state,
-  //       formFields: state.formFields.map((field) =>
-  //         field.id === id ? newField : field
-  //       ),
-  //     });
-  //     console.log("state set in editoptions", state);
-  //   }
-  // };
+      case "Textarea":
+        setState({
+          ...state,
+          formFields: [
+            ...state.formFields,
+            {
+              kind: "textarea",
+              id: Number(new Date()),
+              label: newField,
+              value: "",
+            },
+          ],
+        });
+        break;
+
+      case "Dropdown":
+        setState({
+          ...state,
+          formFields: [
+            ...state.formFields,
+            {
+              kind: "dropdown",
+              id: Number(new Date()),
+              label: newField,
+              options: ["default option 1", "default option 2"],
+              value: "",
+            },
+          ],
+        });
+        break;
+
+      case "Multiselect":
+        setState({
+          ...state,
+          formFields: [
+            ...state.formFields,
+            {
+              kind: "multiselect",
+              id: Number(new Date()),
+              label: newField,
+              options: [
+                "default option 1",
+                "default option 2",
+                "default option 3",
+              ],
+              // value: []
+            },
+          ],
+        });
+        break;
+
+      case "Radio Buttons":
+        setState({
+          ...state,
+          formFields: [
+            ...state.formFields,
+            {
+              kind: "radio",
+              id: Number(new Date()),
+              label: newField,
+              options: ["default option 1", "default option 2"],
+              value: "",
+            },
+          ],
+        });
+        break;
+    }
+    setNewField("New Field Label");
+  };
 
   return (
     <div className="p-4 ">
@@ -349,100 +365,38 @@ export default function Form(props: { formid: number }) {
         }
       })}
       <hr className="my-2 mt-8" />
-      <span>Add a new String Field</span>
+      <span>Add a new Field</span>
       <div className="flex mt-4 mb-4">
         <input
           className="border-2 border-gray-200 rounded-lg p-2 w-full h-10"
           type="text"
-          value={newField.text}
+          value={newField}
           onChange={(e) => {
             e.preventDefault();
-            setNewField({ ...newField, text: e.target.value });
+            setNewField(e.target.value);
           }}
         />
-        <button
-          className=" bg-blue-600 text-white font-bold rounded-lg  ml-4 px-4"
-          onClick={addTextField}
+        <select
+          className="mx-2 w-full border-2 rounded-lg h-10"
+          value={newFieldType}
+          onChange={(e) => {
+            e.preventDefault();
+            setNewFieldType(e.target.value);
+          }}
         >
-          Add Field
-        </button>
-      </div>
+          <option>Text </option>
+          <option>Email</option>
+          <option>Contact No.</option>
+          <option>Date</option>
+          <option>Dropdown</option>
+          <option>Multiselect</option>
+          <option>Textarea</option>
+          <option>Radio Buttons</option>
+        </select>
 
-      <hr className="my-2" />
-      <span>Add a new Dropdown Field</span>
-      <div className="flex mt-4 mb-4">
-        <input
-          className="border-2 border-gray-200 rounded-lg p-2 w-full h-10"
-          type="dropdown"
-          value={newField.dropdown}
-          onChange={(e) => {
-            e.preventDefault();
-            setNewField({ ...newField, dropdown: e.target.value });
-          }}
-        />
         <button
           className=" bg-blue-600 text-white font-bold rounded-lg  ml-4 px-4"
-          onClick={addDropdownField}
-        >
-          Add Field
-        </button>
-      </div>
-
-      <hr className="my-2" />
-      <span>Add a new Radio Button Field</span>
-      <div className="flex mt-4 mb-4">
-        <input
-          className="border-2 border-gray-200 rounded-lg p-2 w-full h-10"
-          type="text"
-          value={newField.radio}
-          onChange={(e) => {
-            e.preventDefault();
-            setNewField({ ...newField, radio: e.target.value });
-          }}
-        />
-        <button
-          className=" bg-blue-600 text-white font-bold rounded-lg  ml-4 px-4"
-          onClick={addRadioField}
-        >
-          Add Field
-        </button>
-      </div>
-
-      <hr className="my-2" />
-      <span>Add a new Text Area Field</span>
-      <div className="flex mt-4 mb-4">
-        <input
-          className="border-2 border-gray-200 rounded-lg p-2 w-full h-10"
-          type="text"
-          value={newField.textarea}
-          onChange={(e) => {
-            e.preventDefault();
-            setNewField({ ...newField, textarea: e.target.value });
-          }}
-        />
-        <button
-          className=" bg-blue-600 text-white font-bold rounded-lg  ml-4 px-4"
-          onClick={addTextAreaField}
-        >
-          Add Field
-        </button>
-      </div>
-
-      <hr className="my-2" />
-      <span>Add a new Multiselect Field</span>
-      <div className="flex mt-4 mb-4">
-        <input
-          className="border-2 border-gray-200 rounded-lg p-2 w-full h-10"
-          type="text"
-          value={newField.multiselect}
-          onChange={(e) => {
-            e.preventDefault();
-            setNewField({ ...newField, multiselect: e.target.value });
-          }}
-        />
-        <button
-          className=" bg-blue-600 text-white font-bold rounded-lg  ml-4 px-4"
-          onClick={addMultiselectField}
+          onClick={addField}
         >
           Add Field
         </button>

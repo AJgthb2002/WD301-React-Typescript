@@ -1,7 +1,15 @@
 import { useState } from "react";
-import { formfield, formdata, Answer } from "../formTypes";
+import {
+  formfield,
+  formdata,
+  Answer,
+  MultiSelect,
+  MultiselectAnswer,
+} from "../formTypes";
 import { Link } from "raviger";
 import PreviewField from "./PreviewField";
+// @ts-ignore
+import ReactMultiSelectCheckboxes from "react-multiselect-checkboxes";
 
 const initialAnswers: (form: formdata) => Answer[] = (form) => {
   return form.formFields.map((field) => {
@@ -27,9 +35,25 @@ export default function Preview(props: { formid: number }) {
     else return emptyform;
   }
 
+  const getInitialSelected = (form: formdata) => {
+    let res: MultiselectAnswer[];
+
+    res = form.formFields
+      .filter((field: any) => field.kind === "multiselect")
+      .map((field: any) => {
+        return { id: field.id, selected: [] };
+      });
+
+    return res;
+  };
+
   const [state, setState] = useState(() => getForm(props.formid));
   const [userinputs, setUserinputs] = useState(() => initialAnswers(state));
   const [fieldState, setFieldState] = useState<formfield>(state.formFields[0]);
+
+  const [selectedOptions, setSelectedOptions] = useState(() =>
+    getInitialSelected(state)
+  );
 
   const handleFieldInput = (id: number, newval: string) => {
     let field = state.formFields.filter((field) => field.id === id)[0];
@@ -44,6 +68,23 @@ export default function Preview(props: { formid: number }) {
   const getUserinput = () => {
     return userinputs.filter((answer) => answer.id === fieldState.id)[0].value;
   };
+
+  const getOptions = (field: MultiSelect) => {
+    const res = field.options.map((opt) => {
+      return { label: `${opt}`, value: `${opt}` };
+    });
+    return res;
+  };
+
+  function onChange(value: any, event: any) {
+    const changed = selectedOptions.filter(
+      (opt) => opt.id === fieldState.id
+    )[0];
+    setSelectedOptions([
+      ...selectedOptions.filter((opt) => opt.id !== changed.id),
+      { id: changed.id, selected: value },
+    ]);
+  }
 
   return (
     <div className=" rounded-lg bg-gray-100 px-8 py-2 my-20 mx-40 justify-between items-center p-4 ">
@@ -65,11 +106,29 @@ export default function Preview(props: { formid: number }) {
                 Question No. {state.formFields.indexOf(fieldState) + 1} /{" "}
                 {state.formFields.length}{" "}
               </div>
-              <PreviewField
-                field={fieldState}
-                storeValueCB={handleFieldInput}
-                userinputval={getUserinput()}
-              />
+              {fieldState.kind === "multiselect" ? (
+                <div className="flex flex-col mx-auto  gap-4">
+                  <label className="text-xl  font-semibold ">
+                    {fieldState.label}
+                  </label>
+                  <ReactMultiSelectCheckboxes
+                    options={getOptions(fieldState)}
+                    value={
+                      selectedOptions.filter(
+                        (opt) => opt.id === fieldState.id
+                      )[0].selected
+                    }
+                    onChange={onChange}
+                    // setState={setSelectedOptions}
+                  />
+                </div>
+              ) : (
+                <PreviewField
+                  field={fieldState}
+                  storeValueCB={handleFieldInput}
+                  userinputval={getUserinput()}
+                />
+              )}
               <div className="flex gap-10 my-4 justify-center">
                 {state.formFields.indexOf(fieldState) + 1 !==
                 state.formFields.length ? (

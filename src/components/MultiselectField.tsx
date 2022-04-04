@@ -57,23 +57,7 @@ export default function MultiselectField(props: {
 
         <div className="flex flex-col gap-2">
           <ReactMultiSelectCheckboxes options={prepareOptions()} />
-          {/* <select className="m-2 w-full border-2" multiple={true}>
-            {options.map((option, index) => {
-              return (
-                <option key={index} value={option}>
-                  <div>
-                    <input
-                      type="checkbox"
-                      id={String(index)}
-                      value={option}
-                      name={`field${props.id}`}
-                    />
-                      <label htmlFor={String(index)}>{option}</label>
-                  </div>
-                </option>
-              );
-            })}
-          </select> */}
+
           <EditField
             addOptionCB={addOption}
             removeOptionCB={removeOption}

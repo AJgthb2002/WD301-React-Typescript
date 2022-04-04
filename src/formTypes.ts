@@ -10,6 +10,11 @@ export type formdata ={
     value: string;
   }
 
+  export type MultiselectAnswer = {
+    id: number;
+    selected: string[];
+  };
+
 type StringFormField={
       id: number;
       kind: "text";

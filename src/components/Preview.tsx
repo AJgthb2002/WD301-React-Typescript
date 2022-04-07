@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useReducer, useState } from "react";
 import {
   formfield,
   formdata,
@@ -10,6 +10,18 @@ import { Link } from "raviger";
 import PreviewField from "./PreviewField";
 // @ts-ignore
 import ReactMultiSelectCheckboxes from "react-multiselect-checkboxes";
+
+type PreviewAction = NextFieldAction | PrevFieldAction;
+
+type NextFieldAction = {
+  type: "nextField";
+  currindex: number;
+};
+
+type PrevFieldAction = {
+  type: "prevField";
+  currindex: number;
+};
 
 const initialAnswers: (form: formdata) => Answer[] = (form) => {
   return form.formFields.map((field) => {
@@ -48,6 +60,31 @@ export default function Preview(props: { formid: number }) {
   };
 
   const [state, setState] = useState(() => getForm(props.formid));
+
+  const reducer: (prevState: formfield, action: PreviewAction) => formfield = (
+    prevState,
+    action
+  ) => {
+    switch (action.type) {
+      case "prevField":
+        return state.formFields[action.currindex - 1]
+          ? state.formFields[action.currindex - 1]
+          : state.formFields[0];
+
+      case "nextField":
+        return state.formFields[action.currindex + 1]
+          ? state.formFields[action.currindex + 1]
+          : state.formFields[action.currindex];
+
+      default:
+        return prevState;
+    }
+  };
+
+  // const [fieldState, dispatch] = useReducer<formfield>(
+  //   reducer,
+  //   state.formFields[0]
+  // );
   const [userinputs, setUserinputs] = useState(() => initialAnswers(state));
   const [fieldState, setFieldState] = useState<formfield>(state.formFields[0]);
 
@@ -138,12 +175,20 @@ export default function Preview(props: { formid: number }) {
                         const currIndex = state.formFields.findIndex(
                           (field) => field.id === fieldState.id
                         );
+
                         setFieldState(
                           state.formFields[currIndex - 1]
                             ? state.formFields[currIndex - 1]
                             : state.formFields[0]
                         );
                       }}
+                      // onClick={()=>{
+                      //   dispatch(
+                      //     {
+                      //       type:"prevField",
+                      //     }
+                      //     )
+                      // }}
                       className="bg-blue-500 text-lg  hover:bg-blue-700 text-white font-bold py-2 px-4 my-4 rounded-lg"
                     >
                       {"<<"} Previous

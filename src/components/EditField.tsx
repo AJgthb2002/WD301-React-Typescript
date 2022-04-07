@@ -1,24 +1,38 @@
-import { useState } from "react";
+import { useReducer, useState } from "react";
+
+type EditAction = AddOption | RemoveOption;
+
+type AddOption = {
+  type: "addOption";
+  name: string;
+};
+
+type RemoveOption = {
+  type: "removeOption";
+  name: string;
+};
 
 export default function EditField(props: {
-  // fieldid: number;
   options: string[];
   removeOptionCB: (name: string) => void;
   addOptionCB: (name: string) => void;
 }) {
-  const [options, setOptions] = useState(props.options);
   const [newOption, setNewOption] = useState("New Option");
 
-  const removeOption = (name: string) => {
-    setOptions(options.filter((o) => o !== name));
-    props.removeOptionCB(name);
+  const reducer: (options: string[], action: EditAction) => string[] = (
+    options,
+    action
+  ) => {
+    switch (action.type) {
+      case "addOption":
+        return [...options, action.name];
+
+      case "removeOption":
+        return options.filter((o) => o !== action.name);
+    }
   };
 
-  const addOption = (name: string) => {
-    setOptions([...options, name]);
-    setNewOption("New Option");
-    props.addOptionCB(name);
-  };
+  const [options, dispatch] = useReducer(reducer, props.options);
 
   return (
     <>
@@ -28,7 +42,13 @@ export default function EditField(props: {
             <div className="w-full"> {option} </div>
             <button
               className=" bg-blue-600 text-white font-bold rounded-lg px-4 ml-4 h-8"
-              onClick={(_) => removeOption(option)}
+              onClick={() => {
+                dispatch({
+                  type: "removeOption",
+                  name: option,
+                });
+                props.removeOptionCB(option);
+              }}
             >
               Remove
             </button>
@@ -49,7 +69,14 @@ export default function EditField(props: {
         />
         <button
           className=" bg-blue-600 text-white font-bold rounded-lg  ml-4 px-4"
-          onClick={() => addOption(newOption)}
+          onClick={() => {
+            dispatch({
+              type: "addOption",
+              name: newOption,
+            });
+            setNewOption("New Option");
+            props.addOptionCB(newOption);
+          }}
         >
           Add Option
         </button>

@@ -36,14 +36,7 @@ export default function Home() {
           <p className="font-semibold text-2xl">Welcome to the Home Page</p>
         </div>
       </div>
-      {/* <div className="flex justify-center">
-        <a
-          href="/form"
-          className="p-2 bg-blue-600 text-white font-bold text-xl rounded-lg px-6 mb-4 mt-1"
-        >
-          New Form
-        </a>
-      </div> */}
+
       <form className="w-full" action="/" method="GET">
         <div className="flex flex-wrap -mx-3 mb-6">
           <div className="w-full px-3">

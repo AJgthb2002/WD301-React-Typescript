@@ -1,26 +1,42 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import EditField from "./EditField";
 // @ts-ignore
 import ReactMultiSelectCheckboxes from "react-multiselect-checkboxes";
 
+type MultiselectAction = AddOption | RemoveOption;
+
+type AddOption = {
+  type: "addOption";
+  name: string;
+};
+
+type RemoveOption = {
+  type: "removeOption";
+  name: string;
+};
+
 export default function MultiselectField(props: {
   id: number;
   label: string;
-  // value: string[];
   options: string[];
   removeField: (id: number) => void;
   handleFieldInput: (id: number, newval: string) => void;
   editOptionsCB: (id: number, newoptions: string[]) => void;
 }) {
-  const [options, setOptions] = useState(props.options);
+  const reducer: (options: string[], action: MultiselectAction) => string[] = (
+    options,
+    action
+  ) => {
+    switch (action.type) {
+      case "addOption":
+        return [...options, action.name];
 
-  const removeOption = (name: string) => {
-    setOptions(options.filter((o) => o !== name));
+      case "removeOption":
+        return options.filter((o) => o !== action.name);
+    }
   };
 
-  const addOption = (name: string) => {
-    setOptions([...options, name]);
-  };
+  const [options, dispatch] = useReducer(reducer, props.options);
 
   useEffect(() => {
     props.editOptionsCB(props.id, options);
@@ -59,8 +75,18 @@ export default function MultiselectField(props: {
           <ReactMultiSelectCheckboxes options={prepareOptions()} />
 
           <EditField
-            addOptionCB={addOption}
-            removeOptionCB={removeOption}
+            addOptionCB={(name) =>
+              dispatch({
+                type: "addOption",
+                name: name,
+              })
+            }
+            removeOptionCB={(name) =>
+              dispatch({
+                type: "removeOption",
+                name: name,
+              })
+            }
             options={options}
           />
         </div>

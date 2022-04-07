@@ -195,37 +195,19 @@ export default function Preview(props: { formid: number }) {
                   <>
                     <button
                       onClick={() => {
-                        const currIndex = state.formFields.findIndex(
-                          (field) => field.id === fieldState.id
-                        );
-
-                        setFieldState(
-                          state.formFields[currIndex - 1]
-                            ? state.formFields[currIndex - 1]
-                            : state.formFields[0]
-                        );
+                        dispatch({
+                          type: "DEC",
+                        });
                       }}
-                      // onClick={()=>{
-                      //   dispatch(
-                      //     {
-                      //       type:"prevField",
-                      //     }
-                      //     )
-                      // }}
                       className="bg-blue-500 text-lg  hover:bg-blue-700 text-white font-bold py-2 px-4 my-4 rounded-lg"
                     >
                       {"<<"} Previous
                     </button>
                     <button
                       onClick={() => {
-                        const currIndex = state.formFields.findIndex(
-                          (field) => field.id === fieldState.id
-                        );
-                        setFieldState(
-                          state.formFields[currIndex + 1]
-                            ? state.formFields[currIndex + 1]
-                            : state.formFields[currIndex]
-                        );
+                        dispatch({
+                          type: "INC",
+                        });
                       }}
                       className="bg-blue-500 text-lg  hover:bg-blue-700 text-white font-bold py-2 px-4 my-4 rounded-lg"
                     >
@@ -236,14 +218,9 @@ export default function Preview(props: { formid: number }) {
                   <>
                     <button
                       onClick={() => {
-                        const currIndex = state.formFields.findIndex(
-                          (field) => field.id === fieldState.id
-                        );
-                        setFieldState(
-                          state.formFields[currIndex - 1]
-                            ? state.formFields[currIndex - 1]
-                            : state.formFields[0]
-                        );
+                        dispatch({
+                          type: "DEC",
+                        });
                       }}
                       className="bg-blue-500 text-lg  hover:bg-blue-700 text-white font-bold py-2 px-4 my-4 rounded-lg"
                     >

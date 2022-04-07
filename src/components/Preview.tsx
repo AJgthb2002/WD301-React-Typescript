@@ -1,4 +1,4 @@
-import { useReducer, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import {
   formfield,
   formdata,
@@ -61,32 +61,55 @@ export default function Preview(props: { formid: number }) {
 
   const [state, setState] = useState(() => getForm(props.formid));
 
-  const reducer: (prevState: formfield, action: PreviewAction) => formfield = (
-    prevState,
-    action
-  ) => {
+  // const reducer: (prevState: formfield, action: PreviewAction) => formfield = (
+  //   prevState,
+  //   action
+  // ) => {
+  //   switch (action.type) {
+  //     case "prevField":
+  //       return state.formFields[action.currindex - 1]
+  //         ? state.formFields[action.currindex - 1]
+  //         : state.formFields[0];
+
+  //     case "nextField":
+  //       return state.formFields[action.currindex + 1]
+  //         ? state.formFields[action.currindex + 1]
+  //         : state.formFields[action.currindex];
+
+  //     default:
+  //       return prevState;
+  //   }
+  // };
+  const indexreducer: (
+    currindex: number,
+    action: { type: "INC" | "DEC" }
+  ) => number = (currindex, action) => {
     switch (action.type) {
-      case "prevField":
-        return state.formFields[action.currindex - 1]
-          ? state.formFields[action.currindex - 1]
-          : state.formFields[0];
+      case "INC":
+        return currindex + 1 < state.formFields.length
+          ? currindex + 1
+          : currindex;
 
-      case "nextField":
-        return state.formFields[action.currindex + 1]
-          ? state.formFields[action.currindex + 1]
-          : state.formFields[action.currindex];
-
-      default:
-        return prevState;
+      case "DEC":
+        return currindex - 1 >= 0 ? currindex - 1 : 0;
     }
   };
+
+  const [currindex, dispatch] = useReducer(indexreducer, 0);
 
   // const [fieldState, dispatch] = useReducer<formfield>(
   //   reducer,
   //   state.formFields[0]
   // );
   const [userinputs, setUserinputs] = useState(() => initialAnswers(state));
-  const [fieldState, setFieldState] = useState<formfield>(state.formFields[0]);
+  // const [fieldState, setFieldState] = useState<formfield>(state.formFields[0]);
+  const [fieldState, setFieldState] = useState<formfield>(
+    state.formFields[currindex]
+  );
+
+  useEffect(() => {
+    setFieldState((p) => state.formFields[currindex]);
+  }, [currindex]);
 
   const [selectedOptions, setSelectedOptions] = useState(() =>
     getInitialSelected(state)

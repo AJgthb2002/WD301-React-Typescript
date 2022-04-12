@@ -5,22 +5,17 @@ import {
   Answer,
   MultiSelect,
   MultiselectAnswer,
+  ApiForm,
 } from "../formTypes";
 import { Link } from "raviger";
 import PreviewField from "./PreviewField";
 // @ts-ignore
 import ReactMultiSelectCheckboxes from "react-multiselect-checkboxes";
+import { getForm, getFormFields } from "../apiUtils";
 
-type PreviewAction = NextFieldAction | PrevFieldAction;
-
-type NextFieldAction = {
-  type: "nextField";
-  currindex: number;
-};
-
-type PrevFieldAction = {
-  type: "prevField";
-  currindex: number;
+type FormReadyAction = {
+  type: "formReady";
+  payload: formdata;
 };
 
 const initialAnswers: (form: formdata) => Answer[] = (form) => {
@@ -30,22 +25,33 @@ const initialAnswers: (form: formdata) => Answer[] = (form) => {
 };
 
 export default function Preview(props: { formid: number }) {
-  const getLocalForms: () => formdata[] = () => {
-    const savedFormsJSON = localStorage.getItem("savedForms");
-    return savedFormsJSON ? JSON.parse(savedFormsJSON) : [];
+  const fetchForm = async (formID: number) => {
+    const formResponse: ApiForm = await getForm(formID);
+    const fieldsResponse = await getFormFields(formID);
+
+    const formData: formdata = {
+      id: formResponse.id,
+      title: formResponse.title,
+      description: formResponse.description,
+      is_public: formResponse.is_public,
+      formFields: fieldsResponse.results,
+      created_date: formResponse.created_date,
+      modified_date: formResponse.modified_date,
+    };
+    return formData;
   };
 
-  function getForm(id: number) {
-    const emptyform: formdata = {
-      id: 0,
-      title: "Form Not Found!!",
-      formFields: [],
-    };
-    const localForms = getLocalForms();
-    if (localForms.filter((form: formdata) => form.id === id).length > 0)
-      return localForms.filter((form: formdata) => form.id === id)[0];
-    else return emptyform;
-  }
+  // function getForm(id: number) {
+  //   const emptyform: formdata = {
+  //     id: 0,
+  //     title: "Form Not Found!!",
+  //     formFields: [],
+  //   };
+  //   const localForms = getLocalForms();
+  //   if (localForms.filter((form: formdata) => form.id === id).length > 0)
+  //     return localForms.filter((form: formdata) => form.id === id)[0];
+  //   else return emptyform;
+  // }
 
   const getInitialSelected = (form: formdata) => {
     let res: MultiselectAnswer[];
@@ -59,27 +65,25 @@ export default function Preview(props: { formid: number }) {
     return res;
   };
 
-  const [state, setState] = useState(() => getForm(props.formid));
+  const reducer: (state: formdata, action: FormReadyAction) => formdata = (
+    state,
+    action
+  ) => {
+    switch (action.type) {
+      case "formReady":
+        return action.payload;
+    }
+  };
+  const initialState = {
+    id: 0,
+    title: "Default",
+    description: "Default description",
+    is_public: false,
+    formFields: [],
+    created_date: "20220202",
+    modified_date: "20220202",
+  };
 
-  // const reducer: (prevState: formfield, action: PreviewAction) => formfield = (
-  //   prevState,
-  //   action
-  // ) => {
-  //   switch (action.type) {
-  //     case "prevField":
-  //       return state.formFields[action.currindex - 1]
-  //         ? state.formFields[action.currindex - 1]
-  //         : state.formFields[0];
-
-  //     case "nextField":
-  //       return state.formFields[action.currindex + 1]
-  //         ? state.formFields[action.currindex + 1]
-  //         : state.formFields[action.currindex];
-
-  //     default:
-  //       return prevState;
-  //   }
-  // };
   const indexreducer: (
     currindex: number,
     action: { type: "INC" | "DEC" }
@@ -95,7 +99,37 @@ export default function Preview(props: { formid: number }) {
     }
   };
 
+  // const [state, setState] = useState<formdata>(() => fetchForm(props.formid));
+  const [state, dispatch2] = useReducer(reducer, initialState);
   const [currindex, dispatch] = useReducer(indexreducer, 0);
+  const [fieldState, setFieldState] = useState<formfield>({
+    id: 0,
+    kind: "TEXT",
+    label: "Default",
+    fieldType: "text",
+    value: "",
+  });
+
+  useEffect(() => {
+    fetchForm(props.formid)
+      .then((formData) => {
+        dispatch2({
+          type: "formReady",
+          payload: formData || initialState,
+        });
+      })
+      .then(() => {
+        console.log("state after dipatch", state);
+        console.log("setting field state next");
+        setFieldState(state.formFields[currindex]);
+        setUserinputs(initialAnswers(state));
+      })
+      .then(() => {
+        console.log("field state:", fieldState);
+        console.log("currindex:", currindex);
+        console.log("state:", state);
+      });
+  }, [state, fieldState, currindex, initialState]);
 
   // const [fieldState, dispatch] = useReducer<formfield>(
   //   reducer,
@@ -103,13 +137,14 @@ export default function Preview(props: { formid: number }) {
   // );
   const [userinputs, setUserinputs] = useState(() => initialAnswers(state));
   // const [fieldState, setFieldState] = useState<formfield>(state.formFields[0]);
-  const [fieldState, setFieldState] = useState<formfield>(
-    state.formFields[currindex]
-  );
+  // const [fieldState, setFieldState] = useState<formfield>(
+  //   state.formFields[currindex]
+  // );
 
-  useEffect(() => {
-    setFieldState((p) => state.formFields[currindex]);
-  }, [currindex]);
+  // useEffect(() => {
+  //   console.log("fieldState changed, current formfield:", state.formFields);
+  //   state && setFieldState((p) => state.formFields[currindex]);
+  // }, [currindex]);
 
   const [selectedOptions, setSelectedOptions] = useState(() =>
     getInitialSelected(state)
@@ -154,7 +189,8 @@ export default function Preview(props: { formid: number }) {
         </div>
       ) : (
         <>
-          {state.formFields.length > 0 ? (
+          {/* {console.log(state)} */}
+          {state.formFields && state.formFields.length > 0 ? (
             <div className="  ">
               <div className="flex justify-between items-center">
                 <h2 className="text-center text-3xl font-bold mx-auto p-8">
@@ -166,6 +202,7 @@ export default function Preview(props: { formid: number }) {
                 Question No. {state.formFields.indexOf(fieldState) + 1} /{" "}
                 {state.formFields.length}{" "}
               </div>
+              {/* {console.log(fieldState)} */}
               {fieldState.kind === "multiselect" ? (
                 <div className="flex flex-col mx-auto  gap-4">
                   <label className="text-xl  font-semibold ">

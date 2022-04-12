@@ -1,17 +1,39 @@
 import { useState, useEffect, useRef, useReducer } from "react";
 import InputField from "./InputField";
-import { formfield, formdata, DropdownFormField } from "../formTypes";
+import {
+  formfield,
+  formdata,
+  DropdownFormField,
+  ApiForm,
+  validateForm,
+  Errors,
+} from "../formTypes";
 import { navigate, Link } from "raviger";
 import DropdownField from "./DropdownField";
 import RadioButtonField from "./RadioButtonField";
 import MultiselectField from "./MultiselectField";
+import {
+  getForm,
+  putForm,
+  getFormFields,
+  postFormField,
+  putFormField,
+  patchFormField,
+  deleteFormField,
+} from "../apiUtils";
 
 type FormAction =
   | AddFieldAction
   | RemoveFieldAction
-  | UpdateTitleAction
+  | UpdateFormDetailsAction
   | UpdateLabelAction
-  | UpdateOptionsAction;
+  | UpdateOptionsAction
+  | FormReadyAction;
+
+type FormReadyAction = {
+  type: "formReady";
+  payload: formdata;
+};
 
 type RemoveFieldAction = {
   type: "removeField";
@@ -24,9 +46,11 @@ type AddFieldAction = {
   kind: string;
 };
 
-type UpdateTitleAction = {
-  type: "updateTitle";
+type UpdateFormDetailsAction = {
+  type: "updateFormDetails";
   title: string;
+  description: string;
+  is_public: boolean;
 };
 
 type UpdateLabelAction = {
@@ -41,11 +65,83 @@ type UpdateOptionsAction = {
   options: string[];
 };
 
+const fetchForm = async (formID: number) => {
+  try {
+    const formResponse: ApiForm = await getForm(formID);
+    const fieldsResponse = await getFormFields(formID);
+    const formData: formdata = {
+      id: formResponse.id,
+      title: formResponse.title,
+      description: formResponse.description,
+      is_public: formResponse.is_public,
+      formFields: fieldsResponse.results,
+      created_date: formResponse.created_date,
+      modified_date: formResponse.modified_date,
+    };
+    return formData;
+  } catch (err) {
+    console.log("Fetchform error:", err);
+  }
+};
+
+const createField = async (formID: number, fieldData: formfield) => {
+  try {
+    const response = await postFormField(formID, fieldData);
+    console.log("Create field response", response);
+  } catch (err) {
+    console.log("Create field Error", err);
+  }
+};
+const updateField = async (
+  formID: number,
+  fieldID: number,
+  fieldData: Partial<formfield>
+) => {
+  try {
+    const response = await patchFormField(formID, fieldID, fieldData);
+    console.log("update field response", response);
+  } catch (err) {
+    console.log("update field error", err);
+  }
+};
+const deleteField = async (formID: number, fieldID: number) => {
+  try {
+    const response = await deleteFormField(formID, fieldID);
+    console.log("delete field response", response);
+  } catch (err) {
+    console.log("delete field error", err);
+  }
+};
+
 export default function Form(props: { formid: number }) {
   const [newField, setNewField] = useState("New Field Label");
   const [newFieldType, setNewFieldType] = useState("text");
 
   const titleRef = useRef<HTMLInputElement>(null);
+  const [errors, setErrors] = useState<Errors<ApiForm>>({});
+
+  const saveFormData = async (formData: formdata) => {
+    const validationErrors = validateForm({
+      title: formData.title || "",
+      description: formData.description,
+    });
+
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length === 0) {
+      try {
+        if (formData.id && formData.title) {
+          const response: ApiForm = await putForm(formData.id, {
+            title: formData.title,
+            description: formData.description,
+            is_public: formData.is_public,
+          });
+          // const fieldsres: putFormField(formData.formFields)
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  };
 
   const getNewField: (label: string, kind: string) => formfield = (
     label,
@@ -54,7 +150,7 @@ export default function Form(props: { formid: number }) {
     let newFormField: formfield = {
       id: Number(new Date()),
       label: label,
-      kind: "text",
+      kind: "TEXT",
       value: "",
       fieldType: "text",
     };
@@ -63,7 +159,7 @@ export default function Form(props: { formid: number }) {
         newFormField = {
           id: Number(new Date()),
           label: label,
-          kind: "text",
+          kind: "TEXT",
           value: "",
           fieldType: "text",
         };
@@ -73,7 +169,7 @@ export default function Form(props: { formid: number }) {
         newFormField = {
           id: Number(new Date()),
           label: label,
-          kind: "text",
+          kind: "TEXT",
           value: "",
           fieldType: "email",
         };
@@ -83,7 +179,7 @@ export default function Form(props: { formid: number }) {
         newFormField = {
           id: Number(new Date()),
           label: label,
-          kind: "text",
+          kind: "TEXT",
           value: "",
           fieldType: "tel",
         };
@@ -93,7 +189,7 @@ export default function Form(props: { formid: number }) {
         newFormField = {
           id: Number(new Date()),
           label: label,
-          kind: "text",
+          kind: "TEXT",
           value: "",
           fieldType: "date",
         };
@@ -146,15 +242,21 @@ export default function Form(props: { formid: number }) {
     action
   ) => {
     switch (action.type) {
+      case "formReady":
+        return action.payload;
+
       case "addField":
         const newField = getNewField(action.label, action.kind);
+        console.log("new field created");
         setNewField("New Field Label");
         setNewFieldType("text");
+        state.id && createField(state.id, newField);
         return {
           ...state,
           formFields: [...state.formFields, newField],
         };
       case "removeField":
+        state.id && deleteField(state.id, action.id);
         return {
           ...state,
           formFields: state.formFields.filter(
@@ -162,12 +264,16 @@ export default function Form(props: { formid: number }) {
           ),
         };
 
-      case "updateTitle":
+      case "updateFormDetails":
         return {
           ...state,
           title: action.title,
+          description: action.description,
+          is_public: action.is_public,
         };
+
       case "updateLabel":
+        state.id && updateField(state.id, action.id, { label: action.label });
         return {
           ...state,
           formFields: state.formFields.map((field) => {
@@ -182,7 +288,6 @@ export default function Form(props: { formid: number }) {
         };
 
       case "updateOptions":
-        console.log("Inside updateoptions");
         return {
           ...state,
           formFields: state.formFields.map((field) => {
@@ -199,10 +304,10 @@ export default function Form(props: { formid: number }) {
   };
 
   const initialformfields: formfield[] = [
-    { kind: "text", id: 1, label: "Name", fieldType: "text", value: "" },
-    { kind: "text", id: 2, label: "Email", fieldType: "email", value: "" },
+    { kind: "TEXT", id: 1, label: "Name", fieldType: "text", value: "" },
+    { kind: "TEXT", id: 2, label: "Email", fieldType: "email", value: "" },
     {
-      kind: "text",
+      kind: "TEXT",
       id: 3,
       label: "Date of Birth",
       fieldType: "date",
@@ -250,49 +355,68 @@ export default function Form(props: { formid: number }) {
     console.log(localForms);
   };
 
-  const saveFormData = (currentState: formdata) => {
-    console.log(currentState);
-    let localForms = getLocalForms();
-    if (localForms.length === 0) {
-      saveLocalForms([...localForms, currentState]);
-    } else if (localForms.length > 0) {
-      if (
-        localForms.filter((form) => form.id === currentState.id).length === 0
-      ) {
-        saveLocalForms([...localForms, currentState]);
-      }
-    }
+  // const saveFormData = (currentState: formdata) => {
+  //   console.log(currentState);
+  //   let localForms = getLocalForms();
+  //   if (localForms.length === 0) {
+  //     saveLocalForms([...localForms, currentState]);
+  //   } else if (localForms.length > 0) {
+  //     if (
+  //       localForms.filter((form) => form.id === currentState.id).length === 0
+  //     ) {
+  //       saveLocalForms([...localForms, currentState]);
+  //     }
+  //   }
 
-    localForms = getLocalForms();
-    const updatedLocalForms = localForms.map((form) =>
-      form.id === currentState.id ? currentState : form
-    );
-    saveLocalForms(updatedLocalForms);
+  //   localForms = getLocalForms();
+  //   const updatedLocalForms = localForms.map((form) =>
+  //     form.id === currentState.id ? currentState : form
+  //   );
+  //   saveLocalForms(updatedLocalForms);
+  // };
+
+  // const initialState: () => formdata = () => {
+  //   const localForms = getLocalForms();
+  //   if (localForms.length > 0) {
+  //     for (let i = 0; i < localForms.length; i++) {
+  //       if (localForms[i].id === props.formid) {
+  //         return localForms[i];
+  //       }
+  //     }
+  //   }
+  //   let newid = Number(new Date());
+  //   const newForm = {
+  //     id: newid,
+  //     title: "Untitled Form",
+  //     formFields: initialformfields,
+  //   };
+  //   return newForm;
+  // };
+
+  const initialState: formdata = {
+    id: 0,
+    title: "",
+    description: "",
+    is_public: false,
+    formFields: [],
+    created_date: "",
+    modified_date: "",
   };
 
-  const initialState: () => formdata = () => {
-    const localForms = getLocalForms();
-    if (localForms.length > 0) {
-      for (let i = 0; i < localForms.length; i++) {
-        if (localForms[i].id === props.formid) {
-          return localForms[i];
-        }
-      }
-    }
-    let newid = Number(new Date());
-    const newForm = {
-      id: newid,
-      title: "Untitled Form",
-      formFields: initialformfields,
-    };
-    return newForm;
-  };
+  const [state, dispatch] = useReducer(reducer, initialState);
 
-  const [state, dispatch] = useReducer(reducer, null, () => initialState());
+  // useEffect(() => {
+  //   state.id !== props.formid && navigate(`/form/${state.id}`);
+  // }, [state.id, props.formid]);
 
   useEffect(() => {
-    state.id !== props.formid && navigate(`/form/${state.id}`);
-  }, [state.id, props.formid]);
+    fetchForm(props.formid).then((formData) => {
+      dispatch({
+        type: "formReady",
+        payload: formData || initialState,
+      });
+    });
+  }, []);
 
   useEffect(() => {
     titleRef.current?.focus();
@@ -303,7 +427,7 @@ export default function Form(props: { formid: number }) {
       saveFormData(state);
     }, 1000);
     clearTimeout(timeout);
-  });
+  }, [state]);
 
   return (
     <div className="p-4 ">
@@ -312,15 +436,65 @@ export default function Form(props: { formid: number }) {
         type="text"
         value={state.title}
         onChange={(e) => {
-          dispatch({ type: "updateTitle", title: e.target.value });
+          dispatch({
+            type: "updateFormDetails",
+            title: e.target.value,
+            description: state.description || "",
+            is_public: state.is_public || false,
+          });
         }}
         ref={titleRef}
       />
+      {errors.title && <p className="text-red-500">{errors.title}</p>}
       <hr className="mb-2" />
+
+      <div className="flex flex-col mb-4">
+        <label className="font-semibold text-lg">Description</label>
+        <textarea
+          className="border-2 border-gray-200 p-2 rounded-lg  my-2 flex-1"
+          onChange={(e) => {
+            dispatch({
+              type: "updateFormDetails",
+              title: state.title || "",
+              description: e.target.value,
+              is_public: state.is_public || false,
+            });
+          }}
+          value={state.description}
+        />
+
+        {errors.description && (
+          <p className="text-red-500">{errors.description}</p>
+        )}
+      </div>
+      <div className="mb-4">
+        <input
+          className="mr-2 border-2 border-gray-200 rounded-lg p-2 my-2 flex-1"
+          type="checkbox"
+          name="is_public"
+          id="is_public"
+          value={state.is_public ? "true" : "false"}
+          onChange={(e) => {
+            dispatch({
+              type: "updateFormDetails",
+              title: state.title || "",
+              description: state.description || "",
+              is_public: e.target.checked ? true : false,
+            });
+          }}
+        />
+        <label
+          htmlFor="is_public"
+          className={`${errors.is_public ? "text-red-500" : ""} font-medium`}
+        >
+          Is Public
+        </label>
+        {errors.is_public && <p className="text-red-500">{errors.is_public}</p>}
+      </div>
 
       {state.formFields.map((field) => {
         switch (field.kind) {
-          case "text":
+          case "TEXT":
           case "textarea":
             return (
               <InputField
@@ -328,7 +502,10 @@ export default function Form(props: { formid: number }) {
                 id={field.id}
                 label={field.label}
                 value={field.label}
-                removeField={(id) => dispatch({ type: "removeField", id: id })}
+                removeField={(id) => {
+                  console.log("removing field...");
+                  dispatch({ type: "removeField", id: field.id });
+                }}
                 handleFieldInput={(id, value) =>
                   dispatch({ type: "updateLabel", label: value, id: id })
                 }
@@ -343,7 +520,9 @@ export default function Form(props: { formid: number }) {
                 label={field.label}
                 value={field.label}
                 options={field.options}
-                removeField={(id) => dispatch({ type: "removeField", id: id })}
+                removeField={(id) =>
+                  dispatch({ type: "removeField", id: field.id })
+                }
                 handleFieldInput={(id, value) =>
                   dispatch({ type: "updateLabel", label: value, id: id })
                 }

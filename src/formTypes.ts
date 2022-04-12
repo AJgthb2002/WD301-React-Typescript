@@ -1,8 +1,8 @@
-export type formdata ={
-    id: number;
-    title: string;
-    formFields: formfield[];
-  }
+// export type formdata ={
+//     id: number;
+//     title: string;
+//     formFields: formfield[];
+//   }
   
   // For storing preview answers in an array
   export type Answer ={
@@ -17,7 +17,7 @@ export type formdata ={
 
 type StringFormField={
       id: number;
-      kind: "text";
+      kind: "TEXT";
       label: string;
       fieldType: textFieldTypes;
       value: string;
@@ -56,6 +56,47 @@ export type DropdownFormField={
   };
 
   type textFieldTypes= "text"| "email"| "tel" | "date" 
+  // type textFieldTypes= "TEXT"
 
   export type formfield = StringFormField | DropdownFormField | RadioButton | TextArea | MultiSelect
+
+  export type ApiForm = {
+  id?: number;
+  title: string;
+  description?: string;
+  is_public?: boolean;
+  created_date?: string;
+  modified_date?: string;
+  }
+
+export type formdata = Partial<ApiForm> & { formFields: formfield[] };
   
+export type Errors<T> = Partial<Record<keyof T, string>>;
+
+export const validateForm = (form: ApiForm) => {
+  const errors: Errors<ApiForm> = {};
+  if (form.title.length < 1) {
+    errors.title = "Title is required";
+  }
+
+  if (form.title.length > 100) {
+    errors.title = "Title must be less than 100 characters";
+  }
+  if (form.description && form.description.length > 1000) {
+    errors.description = "Description must be less than 100 characters";
+  }
+  return errors;
+};
+
+export type Pagination<T> = {
+  count : number
+  next: string | null
+  previous: string | null
+  results: T[]
+}
+
+
+export type PaginationParams = {
+  offset: number;
+  limit: number;
+}

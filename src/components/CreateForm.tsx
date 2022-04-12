@@ -1,0 +1,124 @@
+import { navigate } from "raviger";
+import React, { useState } from "react";
+import { createForm } from "../apiUtils";
+import { Errors, ApiForm, validateForm } from "../formTypes";
+
+export default function CreateForm() {
+  const [form, setForm] = useState<ApiForm>({
+    title: "",
+    description: "",
+    is_public: false,
+  });
+
+  const [errors, setErrors] = useState<Errors<ApiForm>>({});
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setForm({ ...form, [name]: value });
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const validationErrors = validateForm(form);
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length === 0) {
+      try {
+        const response = await createForm(form);
+        navigate(`/form/${response.id}`);
+      } catch (error) {
+        console.log(error);
+      }
+
+      //   const auth = "Basic" + window.btoa("AnanyaJ:gruffycat");
+      //   const response = await fetch("https://tsapi.coronasafe.live/api/forms/", {
+      //     method: "POST",
+      //     headers: {
+      //       "Content-Type": "application/json;",
+      //       Authorization: auth,
+      //     },
+      //     body: JSON.stringify(form),
+      //   });
+
+      //   if (response.ok) {
+      //     const data = await response.json();
+
+      //   }
+    }
+  };
+
+  return (
+    <div className="w-full max-w-lg ">
+      <h1 className="text-xl my-2 text-gray-700 font-semibold ">Create Form</h1>
+      <form className="py-8" onSubmit={handleSubmit}>
+        <div className="mb-4">
+          <label
+            htmlFor="title"
+            className={`${errors.title ? "text-red-500" : ""} font-medium`}
+          >
+            Title
+          </label>
+          <input
+            className="w-full border-2 border-gray-200 rounded-lg p-2 my-2 flex-1"
+            type="text"
+            name="title"
+            id="title"
+            value={form.title}
+            onChange={handleChange}
+          />
+          {errors.title && <p className="text-red-500">{errors.title}</p>}
+        </div>
+        <div className="mb-4">
+          <label
+            htmlFor="description"
+            className={`${
+              errors.description ? "text-red-500" : ""
+            } font-medium`}
+          >
+            Description
+          </label>
+          <input
+            className="w-full border-2 border-gray-200 rounded-lg p-2 my-2 flex-1"
+            type="text"
+            name="description"
+            id="description"
+            value={form.description}
+            onChange={handleChange}
+          />
+          {errors.description && (
+            <p className="text-red-500">{errors.description}</p>
+          )}
+        </div>
+        <div className="mb-4">
+          <input
+            className="mr-2 border-2 border-gray-200 rounded-lg p-2 my-2 flex-1"
+            type="checkbox"
+            name="is_public"
+            id="is_public"
+            checked={form.is_public}
+            // value={form.is_public}
+            onChange={(e) => {
+              e.target.checked
+                ? setForm({ ...form, is_public: true })
+                : setForm({ ...form, is_public: false });
+            }}
+          />
+          <label
+            htmlFor="is_public"
+            className={`${errors.is_public ? "text-red-500" : ""} font-medium`}
+          >
+            Is Public
+          </label>
+          {errors.is_public && (
+            <p className="text-red-500">{errors.is_public}</p>
+          )}
+        </div>
+        <button
+          className="bg-blue-500 text-sm  hover:bg-blue-700 text-white font-bold py-2 px-4 my-4 rounded-lg"
+          type="submit"
+        >
+          Submit
+        </button>
+      </form>
+    </div>
+  );
+}

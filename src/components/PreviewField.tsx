@@ -6,7 +6,7 @@ export default function PreviewField(props: {
   userinputval: string;
 }) {
   switch (props.field.kind) {
-    case "text":
+    case "TEXT":
       return (
         <div className="flex flex-col mx-auto  gap-4">
           <label className="text-xl  font-semibold ">{props.field.label}</label>

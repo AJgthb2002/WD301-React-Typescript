@@ -28,21 +28,6 @@ export default function CreateForm() {
       } catch (error) {
         console.log(error);
       }
-
-      //   const auth = "Basic" + window.btoa("AnanyaJ:gruffycat");
-      //   const response = await fetch("https://tsapi.coronasafe.live/api/forms/", {
-      //     method: "POST",
-      //     headers: {
-      //       "Content-Type": "application/json;",
-      //       Authorization: auth,
-      //     },
-      //     body: JSON.stringify(form),
-      //   });
-
-      //   if (response.ok) {
-      //     const data = await response.json();
-
-      //   }
     }
   };
 

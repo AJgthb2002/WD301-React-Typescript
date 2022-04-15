@@ -86,8 +86,17 @@ const fetchForm = async (formID: number) => {
 
 const createField = async (formID: number, fieldData: formfield) => {
   try {
-    const response = await postFormField(formID, fieldData);
-    console.log("Create field response", response);
+    if (fieldData.kind === "TEXT") {
+      const apifieldData = {
+        ...fieldData,
+        meta: { type: fieldData.fieldType },
+      };
+      const response = await postFormField(formID, apifieldData);
+      console.log("Create field response", response);
+    } else {
+      const response = await postFormField(formID, fieldData);
+      console.log("Create field response", response);
+    }
   } catch (err) {
     console.log("Create field Error", err);
   }
@@ -115,7 +124,7 @@ const deleteField = async (formID: number, fieldID: number) => {
 
 export default function Form(props: { formid: number }) {
   const [newField, setNewField] = useState("New Field Label");
-  const [newFieldType, setNewFieldType] = useState("text");
+  const [newFieldType, setNewFieldType] = useState("Text");
 
   const titleRef = useRef<HTMLInputElement>(null);
   const [errors, setErrors] = useState<Errors<ApiForm>>({});
@@ -135,7 +144,6 @@ export default function Form(props: { formid: number }) {
             description: formData.description,
             is_public: formData.is_public,
           });
-          // const fieldsres: putFormField(formData.formFields)
         }
       } catch (err) {
         console.log(err);
@@ -153,6 +161,7 @@ export default function Form(props: { formid: number }) {
       kind: "TEXT",
       value: "",
       fieldType: "text",
+      meta: { type: "text" },
     };
     switch (kind) {
       case "Text":
@@ -162,6 +171,9 @@ export default function Form(props: { formid: number }) {
           kind: "TEXT",
           value: "",
           fieldType: "text",
+          meta: {
+            type: "text",
+          },
         };
         return newFormField;
 
@@ -172,6 +184,9 @@ export default function Form(props: { formid: number }) {
           kind: "TEXT",
           value: "",
           fieldType: "email",
+          meta: {
+            type: "email",
+          },
         };
         return newFormField;
 
@@ -182,16 +197,23 @@ export default function Form(props: { formid: number }) {
           kind: "TEXT",
           value: "",
           fieldType: "tel",
+          meta: {
+            type: "tel",
+          },
         };
         return newFormField;
 
       case "Date":
+        console.log("returning new date type field");
         newFormField = {
           id: Number(new Date()),
           label: label,
           kind: "TEXT",
           value: "",
           fieldType: "date",
+          meta: {
+            type: "date",
+          },
         };
         return newFormField;
 
@@ -232,6 +254,9 @@ export default function Form(props: { formid: number }) {
           options: ["option1", "option2", "option3"],
         };
         return newFormField;
+
+      default:
+        console.log("inside default", kind);
     }
 
     return newFormField;
@@ -246,15 +271,18 @@ export default function Form(props: { formid: number }) {
         return action.payload;
 
       case "addField":
+        console.log("inside add field", action.kind);
         const newField = getNewField(action.label, action.kind);
         console.log("new field created");
         setNewField("New Field Label");
-        setNewFieldType("text");
+        setNewFieldType("Text");
         state.id && createField(state.id, newField);
+        console.log(newField);
         return {
           ...state,
           formFields: [...state.formFields, newField],
         };
+
       case "removeField":
         state.id && deleteField(state.id, action.id);
         return {
@@ -304,14 +332,35 @@ export default function Form(props: { formid: number }) {
   };
 
   const initialformfields: formfield[] = [
-    { kind: "TEXT", id: 1, label: "Name", fieldType: "text", value: "" },
-    { kind: "TEXT", id: 2, label: "Email", fieldType: "email", value: "" },
+    {
+      kind: "TEXT",
+      id: 1,
+      label: "Name",
+      fieldType: "text",
+      value: "",
+      meta: {
+        type: "text",
+      },
+    },
+    {
+      kind: "TEXT",
+      id: 2,
+      label: "Email",
+      fieldType: "email",
+      value: "",
+      meta: {
+        type: "email",
+      },
+    },
     {
       kind: "TEXT",
       id: 3,
       label: "Date of Birth",
       fieldType: "date",
       value: "",
+      meta: {
+        type: "date",
+      },
     },
 
     {
@@ -344,55 +393,6 @@ export default function Form(props: { formid: number }) {
     },
   ];
 
-  const getLocalForms: () => formdata[] = () => {
-    const savedFormsJSON = localStorage.getItem("savedForms");
-    return savedFormsJSON ? JSON.parse(savedFormsJSON) : [];
-  };
-
-  const saveLocalForms = (localForms: formdata[]) => {
-    localStorage.setItem("savedForms", JSON.stringify(localForms));
-    console.log("saved form");
-    console.log(localForms);
-  };
-
-  // const saveFormData = (currentState: formdata) => {
-  //   console.log(currentState);
-  //   let localForms = getLocalForms();
-  //   if (localForms.length === 0) {
-  //     saveLocalForms([...localForms, currentState]);
-  //   } else if (localForms.length > 0) {
-  //     if (
-  //       localForms.filter((form) => form.id === currentState.id).length === 0
-  //     ) {
-  //       saveLocalForms([...localForms, currentState]);
-  //     }
-  //   }
-
-  //   localForms = getLocalForms();
-  //   const updatedLocalForms = localForms.map((form) =>
-  //     form.id === currentState.id ? currentState : form
-  //   );
-  //   saveLocalForms(updatedLocalForms);
-  // };
-
-  // const initialState: () => formdata = () => {
-  //   const localForms = getLocalForms();
-  //   if (localForms.length > 0) {
-  //     for (let i = 0; i < localForms.length; i++) {
-  //       if (localForms[i].id === props.formid) {
-  //         return localForms[i];
-  //       }
-  //     }
-  //   }
-  //   let newid = Number(new Date());
-  //   const newForm = {
-  //     id: newid,
-  //     title: "Untitled Form",
-  //     formFields: initialformfields,
-  //   };
-  //   return newForm;
-  // };
-
   const initialState: formdata = {
     id: 0,
     title: "",
@@ -404,10 +404,6 @@ export default function Form(props: { formid: number }) {
   };
 
   const [state, dispatch] = useReducer(reducer, initialState);
-
-  // useEffect(() => {
-  //   state.id !== props.formid && navigate(`/form/${state.id}`);
-  // }, [state.id, props.formid]);
 
   useEffect(() => {
     fetchForm(props.formid).then((formData) => {
@@ -503,7 +499,7 @@ export default function Form(props: { formid: number }) {
                 label={field.label}
                 value={field.label}
                 removeField={(id) => {
-                  console.log("removing field...");
+                  // console.log("removing field...");
                   dispatch({ type: "removeField", id: field.id });
                 }}
                 handleFieldInput={(id, value) =>
@@ -527,7 +523,7 @@ export default function Form(props: { formid: number }) {
                   dispatch({ type: "updateLabel", label: value, id: id })
                 }
                 editOptionsCB={(id, options) => {
-                  console.log("Calling update options dispatch in Form");
+                  // console.log("Calling update options dispatch in Form");
                   dispatch({
                     type: "updateOptions",
                     id: id,
@@ -599,9 +595,11 @@ export default function Form(props: { formid: number }) {
           value={newFieldType}
           onChange={(e) => {
             e.preventDefault();
+            console.log(e.target.value);
             setNewFieldType(e.target.value);
           }}
         >
+          <option>Select</option>
           <option>Text </option>
           <option>Email</option>
           <option>Contact No.</option>

@@ -21,6 +21,9 @@ type StringFormField={
       label: string;
       fieldType: textFieldTypes;
       value: string;
+      meta:{
+        type: textFieldTypes;
+      }
   }
 
 export type DropdownFormField={

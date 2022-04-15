@@ -27,7 +27,6 @@ export default function Header(props: { currentUser: any }) {
             window.location.reload();
           }}
           className="text-gray-800 uppercase"
-          // exactActiveClass="text-blue-600"
         >
           Logout
         </button>

@@ -1,5 +1,5 @@
 import { navigate } from "raviger";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { login } from "../apiUtils";
 
 export default function Login() {

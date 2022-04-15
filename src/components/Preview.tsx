@@ -18,12 +18,6 @@ type FormReadyAction = {
   payload: formdata;
 };
 
-const initialAnswers: (form: formdata) => Answer[] = (form) => {
-  return form.formFields.map((field) => {
-    return { id: field.id, value: "" };
-  });
-};
-
 export default function Preview(props: { formid: number }) {
   const fetchForm = async (formID: number) => {
     const formResponse: ApiForm = await getForm(formID);
@@ -41,21 +35,8 @@ export default function Preview(props: { formid: number }) {
     return formData;
   };
 
-  // function getForm(id: number) {
-  //   const emptyform: formdata = {
-  //     id: 0,
-  //     title: "Form Not Found!!",
-  //     formFields: [],
-  //   };
-  //   const localForms = getLocalForms();
-  //   if (localForms.filter((form: formdata) => form.id === id).length > 0)
-  //     return localForms.filter((form: formdata) => form.id === id)[0];
-  //   else return emptyform;
-  // }
-
   const getInitialSelected = (form: formdata) => {
     let res: MultiselectAnswer[];
-
     res = form.formFields
       .filter((field: any) => field.kind === "multiselect")
       .map((field: any) => {
@@ -74,6 +55,7 @@ export default function Preview(props: { formid: number }) {
         return action.payload;
     }
   };
+
   const initialState = {
     id: 0,
     title: "Default",
@@ -99,15 +81,23 @@ export default function Preview(props: { formid: number }) {
     }
   };
 
-  // const [state, setState] = useState<formdata>(() => fetchForm(props.formid));
   const [state, dispatch2] = useReducer(reducer, initialState);
+  const initialAnswers: () => Answer[] = () => {
+    return state.formFields.map((field) => {
+      return { id: field.id, value: "" };
+    });
+  };
   const [currindex, dispatch] = useReducer(indexreducer, 0);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [fieldState, setFieldState] = useState<formfield>({
     id: 0,
     kind: "TEXT",
     label: "Default",
     fieldType: "text",
     value: "",
+    meta: {
+      type: "text",
+    },
   });
 
   useEffect(() => {
@@ -119,39 +109,31 @@ export default function Preview(props: { formid: number }) {
         });
       })
       .then(() => {
-        console.log("state after dipatch", state);
-        console.log("setting field state next");
-        setFieldState(state.formFields[currindex]);
-        setUserinputs(initialAnswers(state));
-      })
-      .then(() => {
-        console.log("field state:", fieldState);
-        console.log("currindex:", currindex);
-        console.log("state:", state);
+        setIsLoaded(true);
       });
-  }, [state, fieldState, currindex, initialState]);
+  }, [props.formid]);
 
-  // const [fieldState, dispatch] = useReducer<formfield>(
-  //   reducer,
-  //   state.formFields[0]
-  // );
-  const [userinputs, setUserinputs] = useState(() => initialAnswers(state));
-  // const [fieldState, setFieldState] = useState<formfield>(state.formFields[0]);
-  // const [fieldState, setFieldState] = useState<formfield>(
-  //   state.formFields[currindex]
-  // );
+  useEffect(() => {
+    if (isLoaded && state.formFields.length > 0) {
+      setUserinputs(initialAnswers());
+    }
+  }, [isLoaded]);
 
-  // useEffect(() => {
-  //   console.log("fieldState changed, current formfield:", state.formFields);
-  //   state && setFieldState((p) => state.formFields[currindex]);
-  // }, [currindex]);
+  useEffect(() => {
+    console.log("inside 2nd useeffect", isLoaded, state);
+    if (isLoaded && state.formFields.length > 0) {
+      setFieldState(state.formFields[currindex]);
+    }
+  }, [isLoaded, currindex, state, state.formFields]);
+
+  const [userinputs, setUserinputs] = useState(() => initialAnswers());
 
   const [selectedOptions, setSelectedOptions] = useState(() =>
     getInitialSelected(state)
   );
 
   const handleFieldInput = (id: number, newval: string) => {
-    let field = state.formFields.filter((field) => field.id === id)[0];
+    // let field = state.formFields.filter((field) => field.id === id)[0];
 
     setUserinputs(
       userinputs.map((answer) =>
@@ -161,7 +143,11 @@ export default function Preview(props: { formid: number }) {
   };
 
   const getUserinput = () => {
-    return userinputs.filter((answer) => answer.id === fieldState.id)[0].value;
+    if (userinputs.filter((answer) => answer.id === fieldState.id)[0]) {
+      return userinputs.filter((answer) => answer.id === fieldState.id)[0]
+        .value;
+    } else return "";
+    // return "";
   };
 
   const getOptions = (field: MultiSelect) => {
@@ -183,14 +169,12 @@ export default function Preview(props: { formid: number }) {
 
   return (
     <div className=" rounded-lg bg-gray-100 px-8 py-2 my-20 mx-40 justify-between items-center p-4 ">
-      {state.title === "Form Not Found!!" ? (
-        <div className="text-2xl font-semibold text-center">
-          Form Not Found!!
-        </div>
+      {!isLoaded ? (
+        <div className="text-2xl font-semibold text-center">Loading...</div>
       ) : (
         <>
-          {/* {console.log(state)} */}
-          {state.formFields && state.formFields.length > 0 ? (
+          {console.log(fieldState)}
+          {isLoaded && state.formFields && state.formFields.length > 0 ? (
             <div className="  ">
               <div className="flex justify-between items-center">
                 <h2 className="text-center text-3xl font-bold mx-auto p-8">
@@ -202,7 +186,7 @@ export default function Preview(props: { formid: number }) {
                 Question No. {state.formFields.indexOf(fieldState) + 1} /{" "}
                 {state.formFields.length}{" "}
               </div>
-              {/* {console.log(fieldState)} */}
+
               {fieldState.kind === "multiselect" ? (
                 <div className="flex flex-col mx-auto  gap-4">
                   <label className="text-xl  font-semibold ">
@@ -216,7 +200,6 @@ export default function Preview(props: { formid: number }) {
                       )[0].selected
                     }
                     onChange={onChange}
-                    // setState={setSelectedOptions}
                   />
                 </div>
               ) : (

@@ -17,8 +17,4 @@ function App() {
   return <AppRouter currentUser={currentUser} />;
 }
 
-// function App() {
-//   return <AppRouter />;
-// }
-
 export default App;

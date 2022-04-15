@@ -21,6 +21,7 @@ export default function AppRouter(props: { currentUser: any }) {
   let routeResult = useRoutes(routes);
   return (
     (
+      // @ts-ignore
       <AppContainer currentUser={props.currentUser}>{routeResult}</AppContainer>
     ) || <div className="">404</div>
   );

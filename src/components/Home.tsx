@@ -1,66 +1,60 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import logo from "../logo.svg";
-import { formdata, ApiForm, Pagination } from "../formTypes";
+import { ApiForm, Pagination } from "../formTypes";
 import { useQueryParams, Link } from "raviger";
 import CreateForm from "./CreateForm";
 import Modal from "./Modal";
-import { list_forms } from "../apiUtils";
+import { deleteForm, list_forms } from "../apiUtils";
+import UserContext from "../UserContext";
 
-export default function Home() {
-  const getLocalForms: () => ApiForm[] = () => {
-    console.log("Inside getlocalforms of Home");
-    const savedFormsJSON = localStorage.getItem("savedForms");
-    return savedFormsJSON ? JSON.parse(savedFormsJSON) : [];
-  };
-
-  const saveLocalForms = (localForms: ApiForm[]) => {
-    localStorage.setItem("savedForms", JSON.stringify(localForms));
-    console.log("saved form");
-    console.log(localForms);
-  };
-
-  const deleteForm = (id: number) => {
-    let localForms = getLocalForms();
-    const updatedLocalForms = localForms.filter((form) => form.id !== id);
-    saveLocalForms(updatedLocalForms);
-    updatesavedForms(updatedLocalForms);
-  };
-
+export default function Home(props: any) {
   const [{ search }, setQuery] = useQueryParams();
   const [searchString, setSearchString] = useState("");
-
-  // const [savedForms, updatesavedForms] = useState(() => getLocalForms());
 
   const fetchForms = async (updatesavedFormsCB: (value: ApiForm[]) => void) => {
     const data: Pagination<ApiForm> = await list_forms();
     updatesavedFormsCB(data.results);
-    // fetch("https://tsapi.coronasafe.live/api/mock_test/")
-    //   .then((response) => response.json())
-    //   .then((data) => updatesavedFormsCB(data));
   };
 
   const [savedForms, updatesavedForms] = useState<ApiForm[]>();
+
+  const removeForm = async (id: number) => {
+    try {
+      await deleteForm(id);
+      fetchForms(updatesavedForms);
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   useEffect(() => {
     fetchForms(updatesavedForms);
   }, []);
 
   const [newForm, setNewForm] = useState(false);
-
+  //// @ts-ignore
+  const currentuser = useContext(UserContext);
   return (
     <div className="flex flex-col justify-center">
+      {console.log(currentuser)}
       <div className="flex">
         <img className="h-48" src={logo} alt="logo"></img>
         <div className="flex flex-col flex-1 items-center justify-center h-48">
-          <p className="font-semibold text-2xl">Welcome to the Home Page</p>
-          <button
-            className="rounded-lg px-4 py-2 m-2 mt-6 shadow-md border border-gray-200 bg-blue-600 text-white text-semibold text-lg cursor-pointer"
-            onClick={(_) => {
-              setNewForm(true);
-            }}
-          >
-            + New Form
-          </button>
+          <p className="font-semibold text-2xl">
+            Welcome to the Home Page, {currentuser}
+          </p>
+          {currentuser === "Guest" ? (
+            <></>
+          ) : (
+            <button
+              className="rounded-lg px-4 py-2 m-2 mt-6 shadow-md border border-gray-200 bg-blue-600 text-white text-semibold text-lg cursor-pointer"
+              onClick={(_) => {
+                setNewForm(true);
+              }}
+            >
+              + New Form
+            </button>
+          )}
         </div>
       </div>
 
@@ -114,36 +108,54 @@ export default function Home() {
               return (
                 <div
                   key={form.id}
-                  className="flex justify-between rounded-lg my-1 bg-blue-200"
+                  className="flex justify-between rounded-lg my-1 py-2 bg-blue-200"
                 >
                   <div className="flex flex-col justify-center">
                     <span className="text-2xl font-semibold mx-4">
                       {form.title}
                     </span>
-                    {/* <span className="text-md text-grey-500 mx-4">
-                    {form.formFields.length} Questions
-                  </span> */}
+
+                    <span className="text-md text-grey-500 mx-4">
+                      {form.description}
+                    </span>
                   </div>
-                  <div className="flex justify-around">
-                    <Link
-                      href={`/preview/${form.id}`}
-                      className="p-2 bg-orange-400 text-white font-bold rounded-lg px-4 my-4 mx-2"
-                    >
-                      Preview
-                    </Link>
-                    <Link
-                      href={`/form/${form.id}`}
-                      className="p-2 bg-green-600 text-white font-bold rounded-lg px-4 my-4 mx-2"
-                    >
-                      Edit
-                    </Link>
-                    {/* <button
-                      className="p-2 bg-red-600 text-white font-bold rounded-lg px-4 my-4 mx-2 mr-4"
-                      onClick={() => deleteForm(form.id)}
-                    >
-                      Delete
-                    </button> */}
-                  </div>
+                  {currentuser === "Guest" ? (
+                    <div className="flex flex-col justify-center">
+                      <span className="text-md text-grey-500 mx-4">
+                        Created On:{" "}
+                        {form.created_date === undefined
+                          ? ""
+                          : form.created_date.slice(0, 10)}
+                      </span>
+                      <span className="text-md text-grey-500 mx-4">
+                        Modified On:{" "}
+                        {form.modified_date === undefined
+                          ? ""
+                          : form.modified_date.slice(0, 10)}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex justify-around">
+                      <Link
+                        href={`/preview/${form.id}`}
+                        className="p-2 bg-orange-400 text-white font-bold rounded-lg px-4 my-4 mx-2"
+                      >
+                        Preview
+                      </Link>
+                      <Link
+                        href={`/form/${form.id}`}
+                        className="p-2 bg-green-600 text-white font-bold rounded-lg px-4 my-4 mx-2"
+                      >
+                        Edit
+                      </Link>
+                      <button
+                        className="p-2 bg-red-600 text-white font-bold rounded-lg px-4 my-4 mx-2 mr-4"
+                        onClick={() => form.id && removeForm(form.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}
